@@ -17,9 +17,67 @@ def load_parquet_files():
         con = duckdb.connect(database='emissions.duckdb', read_only=False)
         logger.info("Connected to DuckDB instance")
 
+        # given in class
         con.execute(f"""
-            -- SQL goes here
+            DROP TABLE IF EXISTS vehicle_emissions;
+            CREATE TABLE vehicle_emissions AS
+            SELECT * FROM read_csv_auto('data/vehicle_emissions.csv');
         """)
+        n = con.execute("SELECT COUNT(*) FROM vehicle_emissions").fetchone()[0]
+        logger.info(f"Loaded {n} rows into vehicle_emissions table")
+
+        # yellow_trips
+        yellow_urls = [
+            f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-{m:02d}.parquet"
+            for m in range(1, 13)
+        ]
+
+        con.execute(f"""
+            DROP TABLE IF EXISTS yellow_trips;
+            CREATE TABLE yellow_trips AS
+            SELECT
+                VendorID,
+                tpep_pickup_datetime AS pickup_datetime,
+                tpep_dropoff_datetime AS dropoff_datetime,
+                passenger_count,
+                trip_distance,
+                PULocationID,
+                DOLocationID,
+                payment_type,
+                fare_amount,
+                tip_amount,
+                total_amount
+            FROM read_parquet({yellow_urls});
+        """)
+        n_yellow = con.execute("SELECT COUNT(*) FROM yellow_trips").fetchone()[0]
+        logger.info(f"Loaded {n_yellow} rows into yellow_trips table")
+
+        # green_trips
+        green_urls = [
+            f"https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2024-{m:02d}.parquet"
+            for m in range(1, 13)
+        ]
+
+        con.execute(f"""
+            DROP TABLE IF EXISTS green_trips;
+            CREATE TABLE green_trips AS
+            SELECT
+                VendorID,
+                lpep_pickup_datetime AS pickup_datetime,
+                lpep_dropoff_datetime AS dropoff_datetime,
+                passenger_count,
+                trip_distance,
+                PULocationID,
+                DOLocationID,
+                payment_type,
+                fare_amount,
+                tip_amount,
+                total_amount
+            FROM read_parquet({green_urls});
+        """)
+        n_green = con.execute("SELECT COUNT(*) FROM green_trips").fetchone()[0]
+        logger.info(f"Loaded {n_green} rows into green_trips table")
+
         logger.info("Dropped table if exists")
 
     except Exception as e:
