@@ -16,11 +16,7 @@ def clean_table(con, table_name):
     # the trim that was talked about in class (still confused why its not in load)
     con.execute(f"""
         CREATE OR REPLACE TABLE {table_name} AS
-        SELECT DISTINCT
-            pickup_datetime,
-            dropoff_datetime,
-            passenger_count,
-            trip_distance
+        SELECT DISTINCT *
         FROM {table_name}
         WHERE
             passenger_count > 0
@@ -36,23 +32,42 @@ def clean_table(con, table_name):
     print(f"{table_name}: {before_count} -> {after_count} rows ({removed} removed)")
 
 def verify_table(con, table_name):
-    checks = {
-        "duplicate rows": f"""...GROUP BY ALL HAVING cnt > 1...""",
-        "0 passenger trips": f"SELECT COUNT(*) FROM {table_name} WHERE passenger_count = 0",
-        "0 mile trips": f"SELECT COUNT(*) FROM {table_name} WHERE trip_distance = 0",
-        "trips over 100 miles": f"SELECT COUNT(*) FROM {table_name} WHERE trip_distance > 100",
-        "trips over 1 day": f"""...date_diff(...) > 86400...""",
-    }
-
-    for label, query in checks.items():
-        n = con.execute(query).fetchone()[0]
-        if n == 0:
-            print(f"{table_name}: OK - no {label} remain")
-        else:
-            print(f"{table_name}: WARNING - {n} rows with {label} still present")
+    dupes = con.execute(f"""
+        SELECT COUNT(*) FROM (
+            SELECT *, COUNT(*) AS cnt FROM {table_name} GROUP BY ALL HAVING cnt > 1
+        )
+    """).fetchone()[0]
+    print(f"{table_name}: duplicates remaining = {dupes}")
+    zero_pax = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE passenger_count = 0").fetchone()[0]
+    print(f"{table_name}: 0-passenger trips remaining = {zero_pax}")
+    zero_miles = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE trip_distance = 0").fetchone()[0]
+    print(f"{table_name}: 0-mile trips remaining = {zero_miles}")
+    over_100 = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE trip_distance > 100").fetchone()[0]
+    print(f"{table_name}: over-100-mile trips remaining = {over_100}")
+    over_day = con.execute(f"""
+        SELECT COUNT(*) FROM {table_name}
+        WHERE date_diff('second', pickup_datetime, dropoff_datetime) > 86400
+    """).fetchone()[0]
+    print(f"{table_name}: over-1-day trips remaining = {over_day}")
 
 def clean_trip_tables():
-    con = duckdb.connect(database='emissions.duckdb', read_only=False)
-    for table in TABLES:
-        clean_table(con, table)
-        verify_table(con, table)
+    con = None
+    try:
+        con = duckdb.connect(database='emissions.duckdb', read_only=False)
+        logger.info("Connected to DuckDB instance")
+
+        for table in TABLES:
+            clean_table(con, table)
+            verify_table(con, table)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
+
+    finally:
+        if con:
+            con.close()
+            logger.info("Closed DuckDB connection")
+
+if __name__ == "__main__":
+    clean_trip_tables()

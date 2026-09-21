@@ -10,3 +10,22 @@
 2026-09-17 14:26:09,973 - INFO - Loaded 41169720 rows into yellow_trips table
 2026-09-17 14:26:11,024 - INFO - Loaded 660218 rows into green_trips table
 2026-09-17 14:26:11,024 - INFO - Dropped table if exists
+2026-09-17 15:05:36,420 - INFO - Connected to DuckDB instance
+2026-09-17 15:05:36,431 - INFO - Loaded 8 rows into vehicle_emissions table
+2026-09-17 15:06:07,633 - INFO - Loaded 41169720 rows into yellow_trips table
+2026-09-17 15:06:12,867 - INFO - Loaded 660218 rows into green_trips table
+2026-09-17 15:06:12,867 - INFO - Dropped table if exists
+2026-09-17 15:06:13,944 - INFO - Closed DuckDB connection
+2026-09-17 15:09:40,269 - INFO - Connected to DuckDB instance
+2026-09-17 15:09:40,283 - INFO - Loaded 8 rows into vehicle_emissions table
+2026-09-17 15:09:41,167 - ERROR - An error occurred: HTTP Error: HTTP GET error on 'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet' (HTTP 0 Internal Server Error)
+
+LINE 9: ...           FROM read_parquet(['https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet', 'https...
+                                                                          ^
+2026-09-17 15:09:41,174 - INFO - Closed DuckDB connection
+2026-09-17 15:12:06,985 - INFO - Connected to DuckDB instance
+2026-09-17 15:12:07,022 - INFO - Loaded 8 rows into vehicle_emissions table
+2026-09-17 15:12:21,916 - INFO - Loaded 41169720 rows into yellow_trips table
+2026-09-17 15:12:23,109 - INFO - Loaded 660218 rows into green_trips table
+2026-09-17 15:12:23,109 - INFO - Dropped table if exists
+2026-09-17 15:12:23,155 - INFO - Closed DuckDB connection

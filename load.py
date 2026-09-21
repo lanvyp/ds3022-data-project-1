@@ -40,13 +40,7 @@ def load_parquet_files():
                 tpep_pickup_datetime AS pickup_datetime,
                 tpep_dropoff_datetime AS dropoff_datetime,
                 passenger_count,
-                trip_distance,
-                PULocationID,
-                DOLocationID,
-                payment_type,
-                fare_amount,
-                tip_amount,
-                total_amount
+                trip_distance
             FROM read_parquet({yellow_urls});
         """)
         n_yellow = con.execute("SELECT COUNT(*) FROM yellow_trips").fetchone()[0]
@@ -66,13 +60,7 @@ def load_parquet_files():
                 lpep_pickup_datetime AS pickup_datetime,
                 lpep_dropoff_datetime AS dropoff_datetime,
                 passenger_count,
-                trip_distance,
-                PULocationID,
-                DOLocationID,
-                payment_type,
-                fare_amount,
-                tip_amount,
-                total_amount
+                trip_distance
             FROM read_parquet({green_urls});
         """)
         n_green = con.execute("SELECT COUNT(*) FROM green_trips").fetchone()[0]
@@ -83,6 +71,11 @@ def load_parquet_files():
     except Exception as e:
         print(f"An error occurred: {e}")
         logger.error(f"An error occurred: {e}")
+
+    finally:
+        if con:
+            con.close()
+            logger.info("Closed DuckDB connection")
 
 if __name__ == "__main__":
     load_parquet_files()
