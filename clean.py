@@ -10,27 +10,55 @@ logger = logging.getLogger(__name__)
 TABLES = ["yellow_trips", "green_trips"]
 
 def clean_table(con, table_name):
+    # base line 
     before_count = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
     logger.info(f"{table_name}: {before_count} rows before cleaning")
 
-    # the trim that was talked about in class (still confused why its not in load)
+    # remove duplicate trips
     con.execute(f"""
         CREATE OR REPLACE TABLE {table_name} AS
-        SELECT DISTINCT *
-        FROM {table_name}
-        WHERE
-            passenger_count > 0
-            AND trip_distance > 0
-            AND trip_distance <= 100
-            AND date_diff('second', pickup_datetime, dropoff_datetime) <= 86400
-            AND date_diff('second', pickup_datetime, dropoff_datetime) > 0;
+        SELECT DISTINCT * FROM {table_name};
     """)
+    n1 = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+    logger.info(f"{table_name}: {n1} rows after removing duplicates")
 
+    # remove trips with 0 passengers
+    con.execute(f"""
+        DELETE FROM {table_name}
+        WHERE passenger_count = 0;
+    """)
+    n2 = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+    logger.info(f"{table_name}: {n2} after removing 0-passenger trips")
+
+    # remove trips 0 miles in length
+    con.execute(f"""
+        DELETE FROM {table_name}
+        WHERE trip_distance = 0;
+    """)
+    n3 = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+    logger.info(f"{table_name}: {n3} after removing 0-mile trips")
+
+    # remove trips longer than 100 miles
+    con.execute(f"""
+        DELETE FROM {table_name}
+        WHERE trip_distance > 100;
+    """)
+    n4 = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+    logger.info(f"{table_name}: {n4} after removing trips over 100 miles")
+
+    # remove trips lasting more than 1 day (86400 seconds)
+    con.execute(f"""
+        DELETE FROM {table_name}
+        WHERE date_diff('second', pickup_datetime, dropoff_datetime) > 86400
+           OR date_diff('second', pickup_datetime, dropoff_datetime) <= 0;
+    """)
     after_count = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+    logger.info(f"{table_name}: {after_count} after removing trips over 1 day")
     removed = before_count - after_count
-    logger.info(f"{table_name}: {after_count} rows after cleaning ({removed} removed)")
+    logger.info(f"{table_name}: {after_count} after cleaning ({removed} removed)")
     print(f"{table_name}: {before_count} -> {after_count} rows ({removed} removed)")
 
+# to test to see if it at 0 or not
 def verify_table(con, table_name):
     dupes = con.execute(f"""
         SELECT COUNT(*) FROM (
@@ -50,6 +78,7 @@ def verify_table(con, table_name):
     """).fetchone()[0]
     print(f"{table_name}: over-1-day trips remaining = {over_day}")
 
+# runs everything
 def clean_trip_tables():
     con = None
     try:
