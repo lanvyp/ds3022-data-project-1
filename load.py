@@ -53,6 +53,7 @@ def load_parquet_files():
             for m in range(1, 13)
         ]
 
+        # same as above but just for green trips
         con.execute(f"""
             DROP TABLE IF EXISTS green_trips;
             CREATE TABLE green_trips AS

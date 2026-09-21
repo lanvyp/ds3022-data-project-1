@@ -60,23 +60,37 @@ def clean_table(con, table_name):
 
 # to test to see if it at 0 or not
 def verify_table(con, table_name):
+    # checkl for no duplicate
     dupes = con.execute(f"""
         SELECT COUNT(*) FROM (
             SELECT *, COUNT(*) AS cnt FROM {table_name} GROUP BY ALL HAVING cnt > 1
         )
     """).fetchone()[0]
     print(f"{table_name}: duplicates remaining = {dupes}")
+    logger.info(f"{table_name}: duplicates remaining = {dupes}")
+
+    # check if no 0 passenger trips
     zero_pax = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE passenger_count = 0").fetchone()[0]
     print(f"{table_name}: 0-passenger trips remaining = {zero_pax}")
+    logger.info(f"{table_name}: 0-passenger trips remaining = {zero_pax}")
+
+    # check if no 0-mile trips
     zero_miles = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE trip_distance = 0").fetchone()[0]
     print(f"{table_name}: 0-mile trips remaining = {zero_miles}")
+    logger.info(f"{table_name}: 0-mile trips remaining = {zero_miles}")
+
+    # check if no trips over 100 miles
     over_100 = con.execute(f"SELECT COUNT(*) FROM {table_name} WHERE trip_distance > 100").fetchone()[0]
     print(f"{table_name}: over-100-mile trips remaining = {over_100}")
+    logger.info(f"{table_name}: over-100-mile trips remaining = {over_100}")
+
+    # check if no trips over 1 day
     over_day = con.execute(f"""
         SELECT COUNT(*) FROM {table_name}
         WHERE date_diff('second', pickup_datetime, dropoff_datetime) > 86400
     """).fetchone()[0]
     print(f"{table_name}: over-1-day trips remaining = {over_day}")
+    logger.info(f"{table_name}: over-1-day trips remaining = {over_day}")
 
 # runs everything
 def clean_trip_tables():
