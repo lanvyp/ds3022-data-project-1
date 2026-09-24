@@ -1,5 +1,37 @@
 # DS3022 - Data Project 1 (Fall 2025)
 
+# My Implementation
+
+## What This Pipeline Does
+
+This project loads all 2024 NYC Yellow and Green taxi trip data into a local DuckDB database, cleans it against 5 data-quality rules, adds 6 derived columns, and reports carbon-output statistics for both cab types.
+
+## How to Run
+
+Run the full pipeline with a single command:
+
+```bash
+python3 run.py
+```
+
+This executes all four stages in order — `load.py` → `clean.py` → `transform.py` → `analysis.py` —
+and produces `emissions.duckdb`, log files for each stage, and `co2_by_month.png`.
+
+**Requirements:** `duckdb`, `matplotlib` (see `requirements.txt`).
+
+## Design Decisions
+
+- **Column selection:** `load.py` pulls only the columns needed for cleaning and analysis (pickup/dropoff time, passenger count, trip distance, VendorID) rather than every column in the raw TLC Parquet files, to keep the tables lean.
+- **Loading:** Each cab type's 12 monthly files are pulled with a single `read_parquet()` call over a programmatically built list of URLs, rather than 12 hardcoded `INSERT` statements.
+- **Cleaning:** Each of the 5 cleaning rules runs as its own separate `DELETE`/`CREATE OR REPLACE` step (rather than one combined `WHERE` clause), so row counts can be logged after each individual
+rule. A verification pass then re-queries each rule independently to confirm zero violations remain.
+- **CO2 calculation:** `trip_co2_kgs` is computed via a live SQL subquery against `vehicle_emissions`
+  (matching each trip's cab type to its `co2_grams_per_mile`), not a hardcoded emissions figure.
+- **Logging:** Each stage (`load`, `clean`, `transform`, `analysis`) writes to its own log file,
+  and every calculation is both printed to the console and logged for a persistent record.
+
+---
+
 ## Assignment
 
 <img src="https://s3.amazonaws.com/uvasds-systems/images/nyc-taxi-graphic.png" style="align:right;float:right;max-width:50%;">
