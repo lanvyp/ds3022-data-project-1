@@ -24,6 +24,7 @@ def load_parquet_files():
             SELECT * FROM read_csv_auto('data/vehicle_emissions.csv');
         """)
         n = con.execute("SELECT COUNT(*) FROM vehicle_emissions").fetchone()[0]
+        print(f"vehicle_emissions: {n} rows loaded")
         logger.info(f"Loaded {n} rows into vehicle_emissions table")
 
         # yellow_trips
@@ -45,6 +46,7 @@ def load_parquet_files():
             FROM read_parquet({yellow_urls});
         """)
         n_yellow = con.execute("SELECT COUNT(*) FROM yellow_trips").fetchone()[0]
+        print(f"yellow_trips: {n_yellow} rows loaded")
         logger.info(f"Loaded {n_yellow} rows into yellow_trips table")
 
         # green_trips
@@ -66,6 +68,7 @@ def load_parquet_files():
             FROM read_parquet({green_urls});
         """)
         n_green = con.execute("SELECT COUNT(*) FROM green_trips").fetchone()[0]
+        print(f"green_trips: {n_green} rows loaded")
         logger.info(f"Loaded {n_green} rows into green_trips table")
 
         logger.info("Dropped table if exists")
