@@ -18,18 +18,18 @@ DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "
 # month_of_year is 1-12
 MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-
+# helper function to log and print messages
 def report(message):
     print(message)    
     logger.info(message) 
 
-
+# helper function to find the largest single trip in terms of CO2 output
 def largest_trip(con, label, table):
     # single largest carbon producing trip of the year
     val = con.execute(f"SELECT MAX(trip_co2_kgs) FROM {table}").fetchone()[0]
     report(f"[{label}] Largest single-trip CO2 output of the year: {val:.4f} kg")
 
-
+# helper function to find the heaviest and lightest average CO2 output by a given column
 def heaviest_lightest(con, label, table, column, description, names=None):
     # groups by the given column, averages trip_co2_kgs across the whole year --> reports the heaviest and lightest average
     rows = con.execute(f"""
@@ -43,7 +43,7 @@ def heaviest_lightest(con, label, table, column, description, names=None):
     report(f"[{label}] Most carbon-heavy {description}: {pretty(high[0])} ({high[1]:.4f} kg avg/trip)")
     report(f"[{label}] Most carbon-light {description}: {pretty(low[0])} ({low[1]:.4f} kg avg/trip)")
 
-
+# helper function to plot monthly CO2 output for both cab types
 def plot_monthly_co2(con):
     # time-series plot: month on X-axis, total CO2 on Y-axis, one line per cab type
     fig, ax = plt.subplots(figsize=(9, 5))
@@ -70,7 +70,7 @@ def plot_monthly_co2(con):
     plt.close(fig)
     report("Saved plot: co2_by_month.png")
 
-
+# main function to run the analysis
 def run_analysis():
     con = None
     try:

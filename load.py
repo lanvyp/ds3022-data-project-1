@@ -8,10 +8,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# main function to load all parquet files into DuckDB
 def load_parquet_files():
-
     con = None
-
     try:
         # Connect to local DuckDB instance
         con = duckdb.connect(database='emissions.duckdb', read_only=False)
@@ -32,7 +31,6 @@ def load_parquet_files():
             f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-{m:02d}.parquet"
             for m in range(1, 13)
         ]
-
         # trimmed the data by picking only the things we need based on what was said in class
         con.execute(f"""
             DROP TABLE IF EXISTS yellow_trips;
@@ -54,7 +52,6 @@ def load_parquet_files():
             f"https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2024-{m:02d}.parquet"
             for m in range(1, 13)
         ]
-
         # same as above but just for green trips
         con.execute(f"""
             DROP TABLE IF EXISTS green_trips;

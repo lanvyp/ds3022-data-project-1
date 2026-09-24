@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 TABLES = ["yellow_trips", "green_trips"]
 
+# main function to clean all trip tables
 def clean_table(con, table_name):
     # base line 
     before_count = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]

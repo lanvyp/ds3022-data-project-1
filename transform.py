@@ -9,7 +9,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
  
 TABLES = ["yellow_trips", "green_trips"]
- 
+
+# main function to transform tables
 def transform_table(con, table_name):
     # match this table to its vehicle_type in vehicle_emissions
     if table_name == "yellow_trips":
